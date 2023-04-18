@@ -13,3 +13,4 @@ cryptography
 matplotlib
 streamlit
 mysql-connector-python
+gunicorn
