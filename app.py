@@ -19,6 +19,7 @@ mycursor = mydb.cursor(buffered=True)
 
 
 app = Flask(__name__)
+app.secret_key = 'the random string'
 
 @app.route("/",methods = ['POST', 'GET'])
 @app.route("/home",methods = ['POST','GET'])
