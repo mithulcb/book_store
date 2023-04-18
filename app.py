@@ -98,6 +98,92 @@ def search_stock_route():
     print(results)
     return render_template('view_stocks.html',book_stock=results)
 
+@app.route("/billing",methods=['GET','POST'])
+def billing_route():
+    if request.method == 'POST':
+        conn = mysql.connect()
+        cursor = conn.cursor()
+        books = request.form['books_list']
+        price_ = request.form['price_list']
+        query = "INSERT INTO bill(books,price) VALUES('"+books+"','"+price_+"');"
+        #print(query)
+        cursor.execute(query)
+        conn.commit()
+        return redirect(url_for('print_bill_route'))
+    return render_template('billing.html')
+
+
+@app.route('/print_bill')
+def print_bill_route():
+    conn = mysql.connect()
+    cursor = conn.cursor()
+    cursor.execute("select * from bill")
+    results = cursor.fetchall()
+    result = results[len(results)-1]
+    books = result[1].split(",")
+    price_ = result[2].split(",")
+    bills = list()
+    total = 0
+    print("=>",len(books),books)
+    for i in range(0,len(books)):
+         bills.append(list((books[i],price_[i])))
+         total += int(price_[i])
+    bills.append(list(("Total",total)))     
+    return render_template('print_bill.html',bills=bills)
+
+
+@app.route("/lending")
+def lending_route():
+    return render_template('lending.html')
+
+
+@app.route("/membership")
+def membership_route():
+    return render_template('membership.html')
+
+@app.route("/add_member",methods=['GET','POST'])
+def add_member_route():
+    if request.method == 'POST':
+        conn = mysql.connect()
+        cursor = conn.cursor()
+        mname = request.form['member_name']
+        memail = request.form['member_email']
+        duration = request.form['duration']
+        print(f"INSERT INTO membership(mname,email,duration) values('{mname}','{memail}'.'{duration}')")
+        cursor.execute(f"INSERT INTO membership(mname,email,duration) values('{mname}','{memail}',{duration})")
+        conn.commit()
+    return render_template('add_member.html')
+
+@app.route('/update_member',methods=['POST','GET'])
+def update_member_route():
+    conn = mysql.connect()
+    cursor = conn.cursor()
+    cursor.execute('SELECT * FROM membership;')
+    results = cursor.fetchall()
+    if request.method == 'POST':
+        mem_name = request.form['select_memeber_name']
+        duration = request.form['duration']
+        cursor.execute("select duration from membership where mname='"+mem_name+"';")
+        old_duration = cursor.fetchone()
+        duration = int(duration)
+        if old_duration:
+            duration = old_duration[0] + int(duration)
+        query = "UPDATE membership SET duration = "+str(duration)+" WHERE mname = '" + mem_name +"';"
+        cursor.execute(query)
+        conn.commit()
+        print(query)
+    cursor.close()
+    conn.close()
+    return render_template('update_member.html',members=results)
+
+@app.route("/view_members",methods=['POST','GET'])
+def view_member_route():
+    conn = mysql.connect()
+    cursor = conn.cursor()
+    cursor.execute('SELECT * FROM membership;')
+    results = cursor.fetchall()
+    return render_template('view_members.html',members=results)
+
 @app.route("/")
 def index_route():
     return render_template('index.html')
