@@ -2,10 +2,10 @@ from flask import Flask,render_template,session,request,redirect,url_for,flash
 import mysql.connector,hashlib
 import matplotlib.pyplot as plt
 import numpy as np
-import streamlit as st
 import mysql.connector
-
-
+import random
+import smtplib
+import yagmail
 
 
 mydb = mysql.connector.connect(
@@ -16,7 +16,7 @@ mydb = mysql.connector.connect(
 )
 mycursor = mydb.cursor(buffered=True)
 
-
+x=random.randint(1,1000)
 
 app = Flask(__name__)
 app.secret_key = 'the random string'
@@ -47,9 +47,38 @@ def login():
             session['username'] = request.form['username']
             session['password'] = request.form['password']
             session['isAdmin'] = (request.form['username']=='admin')
-            return home()
+            return render_template('send_otp.html')
     return render_template('login.html')
 
+@app.route('/send_otp', methods=['GET', 'POST'])
+def send_otp():
+    email = request.form.get('email')
+    print(email)
+    random.seed(x)
+    actual_otp=random.randint(100000, 999999)
+    otp = str(actual_otp)
+    message = 'Your OTP is ' + otp
+    user = 'mithulcb@gmail.com'
+    app_password = 'ywfjxmnurvojwfua' # a token for gmail
+    to=email
+    subject = 'OTP'
+    content='Your OTP is ' + otp
+    with yagmail.SMTP(user, app_password) as yag:
+        yag.send(to, subject, content)
+        print('Sent email successfully')
+    return render_template('verify_otp.html', email=email, otp=otp)
+    return render_template('send_otp.html')
+
+@app.route('/verify_otp', methods=['POST'])
+def verify_otp():
+    user_otp = request.form['otp']
+    random.seed(x)
+    actual_otp=random.randint(100000, 999999)
+    if int(user_otp) == actual_otp:
+        return render_template('home.html')
+    else:
+        return render_template('verify_otp.html',error='Invalid OTP')
+    
 @app.route("/show_update_detail",methods=['POST','GET'])
 def show_update_detail():
     if not session.get('login'):
@@ -75,7 +104,7 @@ def show_update_detail():
         fields_upd = mycursor.column_names
         mycursor.execute(qry1)
         phone_no = mycursor.fetchall()
-        qry_pat = "select Patient_ID, organ_req, reason_of_procurement, Doctor_name from Patient inner join Doctor on Doctor.Doctor_ID = Patient.Doctor_ID and User_ID = %s" %(request.form['User_ID'])
+        qry_pat = "select Patient_ID, organ_req, Criticality, Doctor_name from Patient inner join Doctor on Doctor.Doctor_ID = Patient.Doctor_ID and User_ID = %s" %(request.form['User_ID'])
         qry_don = "select Donor_ID, organ_donated, reason_of_donation, Organization_name from Donor inner join Organization on Organization.Organization_ID = Donor.Organization_ID and User_ID = %s" %(request.form['User_ID'])
         qry_trans = "select distinct Transaction.Patient_ID, Transaction.Donor_ID, Organ_ID, Date_of_transaction, Status from Transaction, Patient, Donor where (Patient.User_ID = %s and Patient.Patient_ID = Transaction.Patient_ID) or (Donor.User_Id= %s and Donor.Donor_ID = Transaction.Donor_ID)" %((request.form['User_ID']),(request.form['User_ID']))
         #
@@ -550,7 +579,7 @@ def update_details():
     fields_upd = mycursor.column_names
     mycursor.execute(qry1)
     phone_no = mycursor.fetchall()
-    qry_pat = "select Patient_ID, organ_req, reason_of_procurement, Doctor_name from Patient inner join Doctor on Doctor.Doctor_ID = Patient.Doctor_ID and User_ID = %s" %(request.form['User_ID'])
+    qry_pat = "select Patient_ID, organ_req, Criticality, Doctor_name from Patient inner join Doctor on Doctor.Doctor_ID = Patient.Doctor_ID and User_ID = %s" %(request.form['User_ID'])
     qry_don = "select Donor_ID, organ_donated, reason_of_donation, Organization_name from Donor inner join Organization on Organization.Organization_ID = Donor.Organization_ID and User_ID = %s" %(request.form['User_ID'])
     qry_trans = "select distinct Transaction.Patient_ID, Transaction.Donor_ID, Organ_ID, Date_of_transaction, Status from Transaction, Patient, Donor where (Patient.User_ID = %s and Patient.Patient_ID = Transaction.Patient_ID) or (Donor.User_Id= %s and Donor.Donor_ID = Transaction.Donor_ID)" %((request.form['User_ID']),(request.form['User_ID']))
     #
