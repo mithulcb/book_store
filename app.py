@@ -877,23 +877,6 @@ def search_log_details():
 
 #---------------------Remove Pages--------------------------------------
 
-@app.route('/remove_user',methods=['GET','POST'])
-def remove_user():
-    if not session.get('login'):
-        return redirect( url_for('home') )
-    return render_template('/remove_user.html')
-
-@app.route('/remove_patient',methods=['GET','POST'])
-def remove_hostel():
-    if not session.get('login'):
-        return redirect( url_for('home') )
-    return render_template('/remove_patient.html')
-
-@app.route('/remove_donor',methods=['GET','POST'])
-def remove_room():
-    if not session.get('login'):
-        return redirect( url_for('home') )
-    return render_template('/remove_donor.html')
 
 @app.route('/remove_doctor',methods=['GET','POST'])
 def remove_doctor():
@@ -907,52 +890,9 @@ def remove_organization():
         return redirect( url_for('home') )
     return render_template('/remove_organization.html')
 
-@app.route('/remove_organization_head',methods=['GET','POST'])
-def remove_organization_head():
-    if not session.get('login'):
-        return redirect( url_for('home') )
-    return render_template('/remove_organization_head.html')
 
 
 #----------------Actual Deletion from database------------------------
-
-@app.route('/del_user',methods=['GET','POST'])
-def del_hostel():
-    if not session.get('login'):
-        return redirect( url_for('home') )
-    qry = "delete from User where User_ID="+str(request.form['User_ID'])
-    print(qry)
-    try:
-        mycursor.execute(qry)
-    except:
-        print("Error in deletion")
-    mydb.commit()
-    return redirect( url_for('home') )
-
-@app.route('/del_patient',methods=['GET','POST'])
-def del_patient():
-    if not session.get('login'):
-        return redirect( url_for('home') )
-    qry = "delete from Patient where Patient_ID="+str(request.form['Patient_ID'])+" and organ_req=\'%s\'"%(request.form['organ_req'])
-    print(qry)
-    try:
-        mycursor.execute(qry)
-    except:
-        print("Error in deletion")
-    mydb.commit()
-    return redirect( url_for('home') )
-
-@app.route('/del_donor',methods=['GET','POST'])
-def del_donor():
-    if not session.get('login'):
-        return redirect( url_for('home') )
-    qry = "delete from Donor where Donor_ID="+str(request.form['Donor_ID'])+" and organ_donated=\'%s\'" %request.form['organ_donated']
-    try:
-        mycursor.execute(qry)
-    except:
-        print("Error in deletion")
-    mydb.commit()
-    return redirect( url_for('home') )
 
 
 @app.route('/del_doctor',methods=['GET','POST'])
@@ -981,17 +921,6 @@ def del_organization():
     return redirect( url_for('home') )
 
 
-@app.route('/del_organization_head',methods=['GET','POST'])
-def del_organization_head():
-    if not session.get('login'):
-        return redirect( url_for('home') )
-    qry = "delete from Organization_head where Organization_ID="+str(request.form['Organization_ID'])+" and Employee_ID="+str(request.form['Employee_ID'])
-    try:
-        mycursor.execute(qry)
-    except:
-        print("Error in deletion")
-    mydb.commit()
-    return redirect( url_for('home') )
 #------------------------------------------------------------------------
 
 @app.route('/contact_admin_page',methods=['GET','POST'])
