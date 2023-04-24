@@ -21,7 +21,7 @@ x=random.randint(1,1000)
 
 app = Flask(__name__)
 
-
+app.secret_key = 'the random string'
 
 @app.route("/")
 @app.route("/home",methods = ['POST','GET'])
