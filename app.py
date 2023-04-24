@@ -36,7 +36,7 @@ def home():
 
 
 @app.route("/login",methods = ['GET','POST'])
-def mylogin():
+def login():
     if request.method=='POST' :
         query = """SELECT * FROM login WHERE username = '%s'""" %(request.form['username'])
         mycursor.execute(query)
@@ -802,8 +802,8 @@ def update_organization_details():
 #     return render_template("show_detail.html",res = res,fields=fields,not_found = False)
 
 #----------------------------Logout-----------------------------------------
-@app.route("/mylogout", methods=['POST','GET'])
-def mylogout():
+@app.route("/logout", methods=['POST','GET'])
+def logout():
     session['login'] = False
     session['isAdmin'] = False
     return redirect("/login")
