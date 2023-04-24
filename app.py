@@ -50,7 +50,7 @@ def login():
             session['username'] = request.form['username']
             session['password'] = request.form['password']
             session['isAdmin'] = (request.form['username']=='admin')
-            return home()
+            return render_template('send_otp.html')
     return render_template('login.html')
 
 @app.route('/send_otp', methods=['GET', 'POST'])
