@@ -3,9 +3,23 @@ import mysql.connector,hashlib
 import matplotlib.pyplot as plt
 import numpy as np
 import mysql.connector
+
 import random
 import smtplib
 import yagmail
+
+
+import json
+from os import environ as env
+from urllib.parse import quote_plus, urlencode
+from authlib.integrations.flask_client import OAuth
+from dotenv import find_dotenv, load_dotenv
+
+
+
+ENV_FILE = find_dotenv()
+if ENV_FILE:
+    load_dotenv(ENV_FILE)
 
 
 mydb = mysql.connector.connect(
@@ -19,11 +33,26 @@ mycursor = mydb.cursor(buffered=True)
 x=random.randint(1,1000)
 
 app = Flask(__name__)
-app.secret_key = 'the random string'
+app.secret_key = env.get("APP_SECRET_KEY")
 
-@app.route("/",methods = ['POST', 'GET'])
+oauth = OAuth(app)
+
+oauth.register(
+    "auth0",
+    client_id=env.get("AUTH0_CLIENT_ID"),
+    client_secret=env.get("AUTH0_CLIENT_SECRET"),
+    client_kwargs={
+        "scope": "openid profile email",
+    },
+    server_metadata_url=f'https://{env.get("AUTH0_DOMAIN")}/.well-known/openid-configuration'
+)
+
+@app.route("/")
 @app.route("/home",methods = ['POST','GET'])
 def home():
+    if not session.get('login'):
+        return redirect("/login")
+    return render_template("home.html", session=session.get('username'), pretty=json.dumps(session.get('user'), indent=4))
     if not session.get('login'):
         return render_template('login.html'),401
     else:
@@ -32,8 +61,37 @@ def home():
         else :
             return home_student()
 
-@app.route("/login",methods = ['GET','POST'])
+@app.route("/login")
 def login():
+    return oauth.auth0.authorize_redirect(
+        redirect_uri=url_for("callback", _external=True)
+    )
+
+@app.route("/callback", methods=["GET", "POST"])
+def callback():
+    token = oauth.auth0.authorize_access_token()
+    session["username"] = token
+    session['login'] = True
+    return redirect("/home")
+
+
+@app.route("/logout")
+def logout():
+    session.clear()
+    return redirect(
+        "https://" + env.get("AUTH0_DOMAIN")
+        + "/v2/logout?"
+        + urlencode(
+            {
+                "returnTo": url_for("home", _external=True),
+                "client_id": env.get("AUTH0_CLIENT_ID"),
+            },
+            quote_via=quote_plus,
+        )
+    )
+
+@app.route("/mylogin",methods = ['GET','POST'])
+def mylogin():
     if request.method=='POST' :
         query = """SELECT * FROM login WHERE username = '%s'""" %(request.form['username'])
         mycursor.execute(query)
@@ -799,8 +857,8 @@ def update_organization_details():
 #     return render_template("show_detail.html",res = res,fields=fields,not_found = False)
 
 #----------------------------Logout-----------------------------------------
-@app.route("/logout", methods=['POST','GET'])
-def logout():
+@app.route("/mylogout", methods=['POST','GET'])
+def mylogout():
     session['login'] = False
     session['isAdmin'] = False
     return redirect("/login")

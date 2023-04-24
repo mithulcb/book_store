@@ -14,3 +14,6 @@ matplotlib
 streamlit
 mysql-connector-python
 gunicorn
+python-dotenv>=0.19.2
+authlib>=1.0
+requests>=2.27.1
