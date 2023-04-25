@@ -10,10 +10,10 @@ import yagmail
 
 
 mydb = mysql.connector.connect(
-  host='book-1.c3lkaaypjx9u.ap-south-1.rds.amazonaws.com',
-  user='admin',
-  password='#Pranav830',
-  database = 'organ'
+  host='',
+  user='',
+  password='',
+  database = ''
 )
 mycursor = mydb.cursor(buffered=True)
 
@@ -61,8 +61,8 @@ def send_otp():
     actual_otp=random.randint(100000, 999999)
     otp = str(actual_otp)
     message = 'Your OTP is ' + otp
-    user = 'mithulcb@gmail.com'
-    app_password = 'ywfjxmnurvojwfua' # a token for gmail
+    user = ''
+    app_password = '' # a token for gmail
     to=email
     subject = 'OTP'
     content='Your OTP is ' + otp
